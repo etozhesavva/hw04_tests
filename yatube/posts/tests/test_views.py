@@ -34,16 +34,16 @@ class TaskPagesTests(TestCase):
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:group',
                     kwargs={'slug': self.group.slug}):
-                'posts/group_list.html',
+            'posts/group_list.html',
             reverse('posts:profile',
                     kwargs={'username': self.user.username}):
-                'posts/profile.html',
+            'posts/profile.html',
             reverse('posts:post_detail',
                     kwargs={'post_id': self.post.pk}):
-                'posts/post_detail.html',
+            'posts/post_detail.html',
             reverse('posts:post_edit',
                     kwargs={'post_id': self.post.pk}):
-                'posts/create_post.html',
+            'posts/create_post.html',
             reverse('posts:create'): 'posts/create_post.html'
         }
         for reverse_name, template in templates_pages_names.items():
