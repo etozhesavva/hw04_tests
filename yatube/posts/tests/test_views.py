@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from django import forms  
+from django import forms
 
 from ..models import Post, Group
 
-
 User = get_user_model()
+
 
 class TaskPagesTests(TestCase):
     @classmethod
@@ -41,7 +41,7 @@ class TaskPagesTests(TestCase):
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
-                self.assertTemplateUsed(response, template) 
+                self.assertTemplateUsed(response, template)
 
 
 def test_index_correct_context(self):
@@ -71,7 +71,7 @@ def test_profile_correct_context(self):
 def test_post_detail_correct_context(self):
     """Шаблон post_detail сформирован с правильным контекстом."""
     response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
+        reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
     post_pk = response.context['post'].pk
     self.assertEqual(post_pk, self.post.pk)
 
@@ -95,7 +95,7 @@ def test_post_edit_correct_context(self):
 
     response = self.authorized_client.get(
         reverse('posts:post_edit',
-        kwargs={'post_id': self.post.pk})
+                kwargs={'post_id': self.post.pk})
     )
     form_fields = {
         'text': forms.fields.CharField,
@@ -123,6 +123,7 @@ def test_create_new_post(self):
                 post, response.context['page_obj']
             )
 
+
 def test_post_new_not_in_group(self):
     """Проверка поста в другой группе."""
 
@@ -130,5 +131,3 @@ def test_post_new_not_in_group(self):
     post = response.context['page_obj'][0]
     group = post.group
     self.assertEqual(group, self.group)
-
-
