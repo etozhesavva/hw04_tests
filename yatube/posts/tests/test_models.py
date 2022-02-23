@@ -1,9 +1,6 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.models import Group, Post
-
-User = get_user_model()
+from posts.models import Group, Post, User
 
 
 class PostModelTest(TestCase):
@@ -24,10 +21,5 @@ class PostModelTest(TestCase):
         )
 
     def test_models_have_correct_object_names(self):
-        """Проверяем, что у постов корректно работает __str__"""
-        post = PostModelTest.post
-        group = PostModelTest.group
-        post_str_method = post.text[:15]
-        group_str_method = group.title
-        self.assertEqual(post_str_method, str(post))
-        self.assertEqual(group_str_method, str(group))
+        self.assertEqual(self.post.text[:15], str(self.post))
+        self.assertEqual(self.group.title, str(self.group))

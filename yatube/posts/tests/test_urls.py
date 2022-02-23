@@ -1,22 +1,28 @@
-from http import HTTPStatus
-
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
+from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Group, Post, User
 
-User = get_user_model()
-
+INDEX = reverse('posts:index')
+NEW_POST = reverse('posts:create')
+AUTHOR = reverse('about:author')
+TECH = reverse('about:tech')
+USERNAME = 'TestAuthor'
+USERNAME2 = 'TestAuthor2'
+AUTH_LOGIN = reverse('login')
+SLUG = 'testgroup'
+GROUP_URL = reverse('posts:group', kwargs={'slug': SLUG})
+PROFILE_URL = reverse('posts:profile', kwargs={'username': USERNAME})
 
 class UrlsTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='user')
+        cls.user = User.objects.create(username=USERNAME)
         cls.group = Group.objects.create(
             title='Test',
-            slug='Test',
+            slug=SLUG,
             description='Test'
         )
         cls.post = Post.objects.create(
@@ -24,41 +30,62 @@ class UrlsTests(TestCase):
             author=cls.user,
             group=cls.group
         )
+        cls.POST_URL = reverse(
+            'posts:post_detail',
+            args=[cls.post.id])
+        cls.POST_EDIT_URL = reverse(
+            'posts:post_edit',
+            args=[cls.post.id])
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.user2 = User.objects.create(username=USERNAME2)
+        self.authorized_client2 = Client()
+        self.authorized_client2.force_login(self.user2)
 
-    def test_urls_by_all(self):
-        url_names = {
-            '/',
-            f'/group/{self.group.slug}/',
-            f'/profile/{self.user.username}/',
-            f'/posts/{self.post.id}/'
-        }
-        for adress in url_names:
-            with self.subTest(adress=adress):
-                response = self.client.get(adress)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
+    def test_urls_status_code(self):
+        urls_names = [
+            [self.POST_EDIT_URL, self.authorized_client2, 302],
+            [INDEX, self.guest_client, 200],
+            [NEW_POST, self.guest_client, 302],
+            [GROUP_URL, self.guest_client, 200],
+            [self.POST_URL, self.guest_client, 200],
+            [PROFILE_URL, self.guest_client, 200],
+            [AUTHOR, self.guest_client, 200],
+            [TECH, self.guest_client, 200],
+            [self.POST_EDIT_URL, self.guest_client, 302],
+            [self.POST_EDIT_URL, self.authorized_client, 200],
+            [NEW_POST, self.authorized_client, 200],
+        ]
+        for url, client, status in urls_names:
+            with self.subTest(url=url):
+                self.assertEqual(client.get(url).status_code, status)
 
-    def test_correct_template(self):
-        template_and_urls = {
-            'posts/index.html': '/',
-            'posts/group_list.html': f'/group/{self.group.slug}/',
-            'posts/profile.html': f'/profile/{self.user.username}/',
-            'posts/post_detail.html': f'/posts/{self.post.id}/'
-        }
-        for template, adress in template_and_urls.items():
-            with self.subTest(adress=adress):
-                response = self.client.get(adress)
-                self.assertTemplateUsed(response, template)
+    def test_urls_uses_correct_template(self):
+        template_urls_names = [
+            ['posts/index.html', INDEX],
+            ['posts/create_post.html', NEW_POST],
+            ['posts/group_list.html', GROUP_URL],
+            ['posts/post_detail.html', self.POST_URL],
+            ['posts/profile.html', PROFILE_URL],
+            ['about/author.html', AUTHOR],
+            ['about/tech.html', TECH],
+            ['posts/create_post.html', self.POST_EDIT_URL]
+        ]
+        for template, url in template_urls_names:
+            with self.subTest(url=url):
+                self.assertTemplateUsed(self.authorized_client.get(url),
+                                        template)
 
-    def test_correct_template_by_owner(self):
-        template_and_urls = {
-            '/create/': 'posts/create_post.html',
-            f'/posts/{self.post.id}/edit/': 'posts/create_post.html'
-        }
-        for adress, template in template_and_urls.items():
-            with self.subTest(adress=adress):
-                response = self.authorized_client.get(adress)
-                self.assertTemplateUsed(response, template)
+    def test_redirect_urls_correct(self):
+        urls = [
+            [NEW_POST, self.guest_client, f'{AUTH_LOGIN}?next={NEW_POST}'],
+            [self.POST_EDIT_URL, self.guest_client,
+             f'{AUTH_LOGIN}?next={self.POST_EDIT_URL}'],
+            [self.POST_EDIT_URL, self.authorized_client2, self.POST_URL],
+        ]
+        for url, client, redirect in urls:
+            with self.subTest(url=url):
+                self.assertRedirects(client.get(url, follow=True), redirect)

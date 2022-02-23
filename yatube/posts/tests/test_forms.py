@@ -2,17 +2,16 @@ import shutil
 import tempfile
 from http import HTTPStatus
 
+from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from posts.forms import PostForm
-from posts.models import Group, Post
+from posts.models import Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
-User = get_user_model()
+NEW_POST = reverse('posts:create')
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -24,15 +23,14 @@ class FormsTests(TestCase):
         cls.user = User.objects.create_user(username='user')
         cls.group = Group.objects.create(
             title='Test',
-            slug='Test',
-            description='Test'
+            slug='Tests',
+            description='Testss'
         )
-        cls.post = Post.objects.create(
-            text='Test',
-            author=cls.user,
-            group=cls.group
+        cls.group2 = Group.objects.create(
+            title='Test2',
+            slug='Tests2',
+            description='Testss2',
         )
-        cls.form = PostForm()
 
     @classmethod
     def tearDownClass(cls):
@@ -42,43 +40,68 @@ class FormsTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.post = Post.objects.create(
+            author=self.user,
+            text='test text',
+            group=self.group
+        )
+        self.POST_URL = reverse(
+            'posts:post_detail',
+            args=[self.post.id])
+        self.POST_EDIT_URL = reverse(
+            'posts:post_edit',
+            args=[self.post.id])
+        self.PROFILE_URL = reverse(
+            'posts:profile',
+            args=[self.user.username]
+        )
 
-    def test_create_post(self):
-        posts_count = Post.objects.count()
+    def test_post_create(self):
+        post = Post.objects.first()
+        post.delete()
         data = {
-            'text': 'Hello',
-            'group': self.group.id
+            'text': 'Текст формы',
+            'group': self.group.id,
         }
         response = self.authorized_client.post(
-            reverse('posts:create'),
+            NEW_POST,
             data=data,
             follow=True
         )
-        post = Post.objects.all().latest('id')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertRedirects(response, reverse(
-            'posts:profile', kwargs={'username': self.user.username})
-        )
-        self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertEqual(data['text'], post.text)
-        self.assertEqual(data['group'], post.group.id)
+        post = response.context['page_obj'][0]
+        self.assertEqual(Post.objects.count(), 1)
+        self.assertEqual(post.text, data['text'])
+        self.assertEqual(post.group, self.group)
+        self.assertEqual(post.author, self.user)
+        self.assertRedirects(response, self.PROFILE_URL)
+
+    def test_new_post_show_correct_context(self):
+        urls = [
+            NEW_POST,
+            self.POST_EDIT_URL
+        ]
+        for url in urls:
+            response = self.authorized_client.get(url)
+            form_fields = {
+                'text': forms.fields.CharField,
+                'group': forms.fields.Field,
+            }
+            for value, expected in form_fields.items():
+                with self.subTest(value=value):
+                    form_field = response.context.get('form').fields.get(value)
+                    self.assertIsInstance(form_field, expected)
 
     def test_edit_post(self):
-        posts_count = Post.objects.count()
-        data = {
-            'text': 'hi',
-            'group': self.group.id
+        form_data = {
+            'text': 'hi!',
+            'group': self.group2.id,
         }
         response = self.authorized_client.post(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
-            data=data,
-            follow=True
+            self.POST_EDIT_URL,
+            data=form_data, follow=True
         )
-        post = Post.objects.get(id=self.post.id)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertRedirects(response, reverse(
-            'posts:post_detail', kwargs={'post_id': self.post.id})
-        )
-        self.assertEqual(Post.objects.count(), posts_count)
-        self.assertEqual(data['text'], post.text)
-        self.assertEqual(data['group'], post.group.id)
+        post = response.context['post']
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.group, self.group2)
+        self.assertEqual(post.author, self.post.author)
+        self.assertRedirects(response, self.POST_URL)
