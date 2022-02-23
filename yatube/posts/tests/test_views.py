@@ -89,7 +89,8 @@ class PaginatorViewsTest(TestCase):
         super().setUpClass()
         cls.user = User.objects.create(username='user')
         posts = [Post(author=cls.user,
-        text=str(i)) for i in range(PAGINATOR_CONST)]
+                      text=str(i))
+                 for i in range(PAGINATOR_CONST)]
         Post.objects.bulk_create(posts)
 
     def test_page_count_records(self):
