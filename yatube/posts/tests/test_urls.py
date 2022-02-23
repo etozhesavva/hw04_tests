@@ -14,6 +14,7 @@ SLUG = 'testgroup'
 GROUP_URL = reverse('posts:group', kwargs={'slug': SLUG})
 PROFILE_URL = reverse('posts:profile', kwargs={'username': USERNAME})
 
+
 class UrlsTests(TestCase):
 
     @classmethod

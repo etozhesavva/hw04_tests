@@ -77,17 +77,19 @@ class PostPagesTests(TestCase):
     def test_post_not_in_group2(self):
         response_group = self.authorized_client.get(GROUP2)
         self.assertNotIn(self.post, response_group.context.get('page_obj'))
-    
+
     def test_profile_page_show_correct_context(self):
         response = self.authorized_client.get(PROFILE)
         self.assertEqual(self.user, response.context.get('author'))
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create(username='user')
-        posts = [Post(author=cls.user, text=str(i)) for i in range(PAGINATOR_CONST)]
+        posts = [Post(author=cls.user,
+        text=str(i)) for i in range(PAGINATOR_CONST)]
         Post.objects.bulk_create(posts)
 
     def test_page_count_records(self):
