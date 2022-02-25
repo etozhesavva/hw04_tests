@@ -30,6 +30,21 @@ class FormsTests(TestCase):
             slug='Tests2',
             description='Testss2',
         )
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='test text',
+            group=cls.group
+        )
+        cls.POST_URL = reverse(
+            'posts:post_detail',
+            args=[cls.post.id])
+        cls.POST_EDIT_URL = reverse(
+            'posts:post_edit',
+            args=[cls.post.id])
+        cls.PROFILE_URL = reverse(
+            'posts:profile',
+            args=[cls.user.username]
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -39,25 +54,11 @@ class FormsTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-        self.post = Post.objects.create(
-            author=self.user,
-            text='test text',
-            group=self.group
-        )
-        self.POST_URL = reverse(
-            'posts:post_detail',
-            args=[self.post.id])
-        self.POST_EDIT_URL = reverse(
-            'posts:post_edit',
-            args=[self.post.id])
-        self.PROFILE_URL = reverse(
-            'posts:profile',
-            args=[self.user.username]
-        )
 
     def test_post_create(self):
-        post = Post.objects.first()
+        post = Post.objects.all()
         post.delete()
+        posts_count = Post.objects.count()
         data = {
             'text': 'Текст формы',
             'group': self.group.id,
@@ -68,9 +69,9 @@ class FormsTests(TestCase):
             follow=True
         )
         post = response.context['page_obj'][0]
-        self.assertEqual(Post.objects.count(), 1)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(post.text, data['text'])
-        self.assertEqual(post.group, self.group)
+        self.assertEqual(data['group'], self.group.id) 
         self.assertEqual(post.author, self.user)
         self.assertRedirects(response, self.PROFILE_URL)
 
@@ -79,12 +80,11 @@ class FormsTests(TestCase):
             NEW_POST,
             self.POST_EDIT_URL
         ]
+        form_fields = {'text': forms.fields.CharField,
+                       'group': forms.fields.Field
+        }
         for url in urls:
             response = self.authorized_client.get(url)
-            form_fields = {
-                'text': forms.fields.CharField,
-                'group': forms.fields.Field,
-            }
             for value, expected in form_fields.items():
                 with self.subTest(value=value):
                     form_field = response.context.get('form').fields.get(value)
@@ -101,6 +101,6 @@ class FormsTests(TestCase):
         )
         post = response.context['post']
         self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(post.group, self.group2)
+        self.assertEqual(form_data['group'], self.group2.id)
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response, self.POST_URL)

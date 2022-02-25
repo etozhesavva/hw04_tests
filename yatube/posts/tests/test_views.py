@@ -28,21 +28,21 @@ class PostPagesTests(TestCase):
             slug=SLUG2,
             description="testd2",
         )
+        cls.post = Post.objects.create(
+            text='Тестовый текст',
+            author=cls.user,
+            group=cls.group,
+        )
+        cls.POST_URL = reverse(
+            'posts:post_detail',
+            kwargs={'post_id': cls.post.pk}
+        )
 
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-        self.post = Post.objects.create(
-            text='Тестовый текст',
-            author=self.user,
-            group=self.group,
-        )
-        self.REVERSE_POST = reverse(
-            'posts:post_detail',
-            kwargs={'post_id': self.post.id}
-        )
-
+       
     def post_checking(self, post):
         self.assertEqual(post.pk, self.post.pk)
         self.assertEqual(post.text, self.post.text)
@@ -53,8 +53,22 @@ class PostPagesTests(TestCase):
         response_group = self.authorized_client.get(GROUP)
         group_test = response_group.context.get('group')
         self.assertEqual(group_test, self.group)
+    
+    def test_post_posts_groups_page_show_correct_context(self):
+        response = self.authorized_client.get(GROUP)
+        first_object = response.context['page_obj'][0]
+        context_objects = {
+            self.post.author: first_object.author,
+            self.post.text: first_object.text,
+            self.group: first_object.group,
+            self.post.pk: first_object.pk,
+        }
+        for reverse_name, response_name in context_objects.items():
+            with self.subTest(reverse_name=reverse_name):
+                self.assertEqual(response_name, reverse_name)
 
     def test_show_correct_context(self):
+        posts_count = Post.objects.count()
         urls_names = [
             GROUP,
             INDEX,
@@ -63,14 +77,13 @@ class PostPagesTests(TestCase):
         for value in urls_names:
             with self.subTest(value=value):
                 response = self.authorized_client.get(value)
-                self.assertEqual(Post.objects.count(), 1)
+                self.assertEqual(Post.objects.count(), posts_count)
                 self.assertEqual(self.post,
                                  response.context.get('page_obj')[0])
+                self.post_checking(self.post)
 
     def test_post_detail_show_correct_context(self):
-        response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': self.post.pk})
-        )
+        response = self.authorized_client.get(self.POST_URL)
         post = response.context['post']
         self.post_checking(post)
 
@@ -88,13 +101,12 @@ class PaginatorViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create(username='user')
-        posts = [Post(author=cls.user,
+        Post.objects.bulk_create([Post(author=cls.user,
                       text=str(i))
-                 for i in range(PAGINATOR_CONST)]
-        Post.objects.bulk_create(posts)
+                 for i in range(PAGINATOR_CONST)])
 
     def test_page_count_records(self):
         response = self.client.get(INDEX)
         self.assertEqual(
-            len(response.context.get('page_obj').object_list), PAGINATOR_CONST
+            len(response.context['page_obj']), PAGINATOR_CONST
         )

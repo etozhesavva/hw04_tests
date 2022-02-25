@@ -3,11 +3,15 @@ from django.urls import reverse
 
 from posts.models import Group, Post, User
 
+SLUG = 'testgroup'
+USERNAME = 'TestAuthor'
+POST_ID = 1
+
 
 class ReverseTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create(username='TestAuthor')
-        self.group = Group.objects.create(slug='testgroup',)
+        self.user = User.objects.create(username=USERNAME)
+        self.group = Group.objects.create(slug=SLUG)
         self.post = Post.objects.create(
             text='Тестовый текст',
             author=self.user,
@@ -17,15 +21,7 @@ class ReverseTests(TestCase):
             [
                 '/',
                 reverse('posts:index')
-            ],
-            [
-                '/about/author/',
-                reverse('about:author')
-            ],
-            [
-                '/about/tech/',
-                reverse('about:tech')
-            ],
+            ],          
             [
                 '/create/',
                 reverse('posts:create')
@@ -39,11 +35,11 @@ class ReverseTests(TestCase):
                 reverse('posts:profile', args=[self.user.username])
             ],
             [
-                f'/posts/{str(self.post.id)}/',
+                f'/posts/{(self.post.id)}/',
                 reverse('posts:post_detail', args=[self.post.id])
             ],
             [
-                f'/posts/{str(self.post.id)}/edit/',
+                f'/posts/{(self.post.id)}/edit/',
                 reverse('posts:post_edit',
                         args=[self.post.id])
             ]
