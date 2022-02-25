@@ -71,7 +71,7 @@ class FormsTests(TestCase):
         post = response.context['page_obj'][0]
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(post.text, data['text'])
-        self.assertEqual(data['group'], self.group.id) 
+        self.assertEqual(data['group'], self.group.id)
         self.assertEqual(post.author, self.user)
         self.assertRedirects(response, self.PROFILE_URL)
 
@@ -82,7 +82,7 @@ class FormsTests(TestCase):
         ]
         form_fields = {'text': forms.fields.CharField,
                        'group': forms.fields.Field
-        }
+                       }
         for url in urls:
             response = self.authorized_client.get(url)
             for value, expected in form_fields.items():

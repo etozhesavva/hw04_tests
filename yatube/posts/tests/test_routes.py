@@ -21,7 +21,7 @@ class ReverseTests(TestCase):
             [
                 '/',
                 reverse('posts:index')
-            ],          
+            ],
             [
                 '/create/',
                 reverse('posts:create')
@@ -35,11 +35,11 @@ class ReverseTests(TestCase):
                 reverse('posts:profile', args=[self.user.username])
             ],
             [
-                f'/posts/{(self.post.id)}/',
+                f'/posts/{self.post.id}/',
                 reverse('posts:post_detail', args=[self.post.id])
             ],
             [
-                f'/posts/{(self.post.id)}/edit/',
+                f'/posts/{self.post.id}/edit/',
                 reverse('posts:post_edit',
                         args=[self.post.id])
             ]

@@ -42,7 +42,7 @@ class PostPagesTests(TestCase):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-       
+
     def post_checking(self, post):
         self.assertEqual(post.pk, self.post.pk)
         self.assertEqual(post.text, self.post.text)
@@ -53,7 +53,7 @@ class PostPagesTests(TestCase):
         response_group = self.authorized_client.get(GROUP)
         group_test = response_group.context.get('group')
         self.assertEqual(group_test, self.group)
-    
+
     def test_post_posts_groups_page_show_correct_context(self):
         response = self.authorized_client.get(GROUP)
         first_object = response.context['page_obj'][0]
@@ -102,8 +102,8 @@ class PaginatorViewsTest(TestCase):
         super().setUpClass()
         cls.user = User.objects.create(username='user')
         Post.objects.bulk_create([Post(author=cls.user,
-                      text=str(i))
-                 for i in range(PAGINATOR_CONST)])
+                                       text=str(i))
+                                  for i in range(PAGINATOR_CONST)])
 
     def test_page_count_records(self):
         response = self.client.get(INDEX)

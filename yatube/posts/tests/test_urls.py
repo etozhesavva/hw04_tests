@@ -42,7 +42,7 @@ class UrlsTests(TestCase):
     def setUp(self):
         self.guest = Client()
         self.author = Client()
-        self.author.force_login(self.user) 
+        self.author.force_login(self.user)
         self.another = Client()
         self.another.force_login(self.user2)
 
@@ -86,4 +86,3 @@ class UrlsTests(TestCase):
         for url, client, redirect in urls:
             with self.subTest(url=url):
                 self.assertRedirects(client.get(url, follow=True), redirect)
-                
