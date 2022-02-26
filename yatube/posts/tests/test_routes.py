@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
 
-
 SLUG = 'testgroup'
 USERNAME = 'TestAuthor'
 POST_ID = 1
@@ -39,5 +38,5 @@ class ReverseTests(TestCase):
         for direct_url, reversed_url, param in self.urls_names:
             self.assertEqual(
                 direct_url, reverse(f'posts:{reversed_url}',
-                args=param)
+                                    args=param)
             )
