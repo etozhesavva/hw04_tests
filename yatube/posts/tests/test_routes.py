@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from pytest import param
+
 
 SLUG = 'testgroup'
 USERNAME = 'TestAuthor'
@@ -31,11 +31,13 @@ class ReverseTests(TestCase):
         ],
         [
             f'/posts/{POST_ID}/edit/',
-            'post_edit',
-                    [POST_ID]
+            'post_edit', [POST_ID]
         ]
     ]
 
     def test_url_uses_correct_reverse(self):
         for direct_url, reversed_url, param in self.urls_names:
-            self.assertEqual(direct_url, reverse(f'posts:{reversed_url}', args=param))
+            self.assertEqual(
+                direct_url, reverse(f'posts:{reversed_url}',
+                args=param)
+            )
