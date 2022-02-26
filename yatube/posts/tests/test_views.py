@@ -51,24 +51,10 @@ class PostPagesTests(TestCase):
 
     def test_group_page_show_correct_context(self):
         response_group = self.authorized_client.get(GROUP)
-        group_test = response_group.context.get('group')
-        self.assertEqual(group_test, self.group)
-
-    def test_post_posts_groups_page_show_correct_context(self):
-        response = self.authorized_client.get(GROUP)
-        first_object = response.context['page_obj'][0]
-        context_objects = {
-            self.post.author: first_object.author,
-            self.post.text: first_object.text,
-            self.group: first_object.group,
-            self.post.pk: first_object.pk,
-        }
-        for reverse_name, response_name in context_objects.items():
-            with self.subTest(reverse_name=reverse_name):
-                self.assertEqual(response_name, reverse_name)
+        for post in response_group.context['page_obj']:
+            self.assertEqual(post.group, self.group)
 
     def test_show_correct_context(self):
-        posts_count = Post.objects.count()
         urls_names = [
             GROUP,
             INDEX,
@@ -77,10 +63,11 @@ class PostPagesTests(TestCase):
         for value in urls_names:
             with self.subTest(value=value):
                 response = self.authorized_client.get(value)
-                self.assertEqual(Post.objects.count(), posts_count)
-                self.assertEqual(self.post,
-                                 response.context.get('page_obj')[0])
-                self.post_checking(self.post)
+                self.assertEqual(
+                        len(response.context['page_obj']), 1
+                )
+                post = response.context['page_obj'][0]
+                self.post_checking(post)
 
     def test_post_detail_show_correct_context(self):
         response = self.authorized_client.get(self.POST_URL)

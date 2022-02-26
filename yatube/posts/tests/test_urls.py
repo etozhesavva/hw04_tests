@@ -59,7 +59,7 @@ class UrlsTests(TestCase):
             [NEW_POST, self.author, 200],
         ]
         for url, client, status in urls_names:
-            with self.subTest(url=url):
+            with self.subTest(url=url, client=client, status=status):
                 self.assertEqual(client.get(url).status_code, status)
 
     def test_urls_uses_correct_template(self):
@@ -84,5 +84,5 @@ class UrlsTests(TestCase):
             [self.POST_EDIT_URL, self.another, self.POST_URL],
         ]
         for url, client, redirect in urls:
-            with self.subTest(url=url):
+            with self.subTest(url=url, client=client):
                 self.assertRedirects(client.get(url, follow=True), redirect)

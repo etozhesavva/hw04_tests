@@ -56,9 +56,8 @@ class FormsTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_post_create(self):
-        post = Post.objects.all()
-        post.delete()
-        posts_count = Post.objects.count()
+        posts = Post.objects.all()
+        posts.delete()
         data = {
             'text': 'Текст формы',
             'group': self.group.id,
@@ -69,9 +68,9 @@ class FormsTests(TestCase):
             follow=True
         )
         post = response.context['page_obj'][0]
-        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertEqual(len(response.context['page_obj']), 1)
         self.assertEqual(post.text, data['text'])
-        self.assertEqual(data['group'], self.group.id)
+        self.assertEqual(data['group'], post.group.id)
         self.assertEqual(post.author, self.user)
         self.assertRedirects(response, self.PROFILE_URL)
 
@@ -101,6 +100,6 @@ class FormsTests(TestCase):
         )
         post = response.context['post']
         self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(form_data['group'], self.group2.id)
+        self.assertEqual(form_data['group'], post.group.id)
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response, self.POST_URL)
