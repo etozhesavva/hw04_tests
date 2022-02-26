@@ -51,8 +51,8 @@ class PostPagesTests(TestCase):
 
     def test_group_page_show_correct_context(self):
         response_group = self.authorized_client.get(GROUP)
-        for post in response_group.context['page_obj']:
-            self.assertEqual(post.group, self.group)
+        group_test = response_group.context.get('group', 'page_obj')
+        self.assertEqual(group_test, self.group)
 
     def test_show_correct_context(self):
         urls_names = [

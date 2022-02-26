@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from pytest import param
 
 SLUG = 'testgroup'
 USERNAME = 'TestAuthor'
@@ -10,31 +11,31 @@ class ReverseTests(TestCase):
     urls_names = [
         [
             '/',
-            reverse('posts:index')
+            'index', []
         ],
         [
             '/create/',
-            reverse('posts:create')
+            'create', []
         ],
         [
             f'/group/{SLUG}/',
-            reverse('posts:group', args=[SLUG])
+            'group', [SLUG]
         ],
         [
             f'/profile/{USERNAME}/',
-            reverse('posts:profile', args=[USERNAME])
+            'profile', [USERNAME]
         ],
         [
             f'/posts/{POST_ID}/',
-            reverse('posts:post_detail', args=[POST_ID])
+            'post_detail', [POST_ID]
         ],
         [
             f'/posts/{POST_ID}/edit/',
-            reverse('posts:post_edit',
-                    args=[POST_ID])
+            'post_edit',
+                    [POST_ID]
         ]
     ]
 
     def test_url_uses_correct_reverse(self):
-        for direct_url, reversed_url in self.urls_names:
-            self.assertEqual(direct_url, reversed_url)
+        for direct_url, reversed_url, param in self.urls_names:
+            self.assertEqual(direct_url, reverse(f'posts:{reversed_url}', args=param))
