@@ -64,7 +64,7 @@ class PostPagesTests(TestCase):
             with self.subTest(value=value):
                 response = self.authorized_client.get(value)
                 self.assertEqual(
-                        len(response.context['page_obj']), 1
+                    len(response.context['page_obj']), 1
                 )
                 post = response.context['page_obj'][0]
                 self.post_checking(post)

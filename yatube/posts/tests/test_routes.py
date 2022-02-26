@@ -9,7 +9,7 @@ POST_ID = 1
 
 class ReverseTests(TestCase):
     urls_names = [
-            [
+    [
                 '/',
                 reverse('posts:index')
             ],
@@ -34,7 +34,7 @@ class ReverseTests(TestCase):
                 reverse('posts:post_edit',
                         args=[POST_ID])
             ]
-        ]
+    ]
 
     def test_url_uses_correct_reverse(self):
         for direct_url, reversed_url in self.urls_names:
